@@ -19,7 +19,7 @@
 
 ## Workflow Architecture
 
-![n8n Workflow Screenshot](<img width="1277" height="494" alt="Image" src="https://github.com/user-attachments/assets/95ac5894-22c0-422e-ba0d-cbeef5a4a731" />)
+<img width="1277" height="494" alt="Image" src="https://github.com/user-attachments/assets/95ac5894-22c0-422e-ba0d-cbeef5a4a731" />
 
 ---
 
