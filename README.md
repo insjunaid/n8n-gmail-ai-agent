@@ -19,8 +19,7 @@
 
 ## Workflow Architecture
 
-<img width="1277" height="494" alt="Image" src="https://github.com/user-attachments/assets/95ac5894-22c0-422e-ba0d-cbeef5a4a731" />
-
+<img width="1307" height="449" alt="Image" src="https://github.com/user-attachments/assets/adcdb075-bf45-4e08-9dda-192a7c264d8d" />
 ---
 
 ## Full Workflow Logic
