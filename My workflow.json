@@ -1,0 +1,590 @@
+{
+  "name": "My workflow",
+  "nodes": [
+    {
+      "parameters": {
+        "pollTimes": {
+          "item": [
+            {
+              "mode": "everyMinute"
+            }
+          ]
+        },
+        "filters": {}
+      },
+      "type": "n8n-nodes-base.gmailTrigger",
+      "typeVersion": 1.3,
+      "position": [
+        -432,
+        0
+      ],
+      "id": "64a1ad82-e804-4a0b-9d3c-404b46f1639d",
+      "name": "Gmail Trigger",
+      "credentials": {
+        "gmailOAuth2": {
+          "id": "Gg4gBvlRmeo3khsc",
+          "name": "Gmail OAuth2 API"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "promptType": "define",
+        "text": "=Classify this email into exactly ONE of these categories: complaint, request, inquiry, urgent, other.\nReply with only the category word, nothing else.\n\nEmail:\nSubject: {{$json.subject}}\nBody: {{$json.snippet}}\n",
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.agent",
+      "typeVersion": 3.1,
+      "position": [
+        -224,
+        0
+      ],
+      "id": "de9445d2-d691-4a67-bd46-5cf58c3758a8",
+      "name": "AI Agent"
+    },
+    {
+      "parameters": {
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.lmChatGoogleGemini",
+      "typeVersion": 1,
+      "position": [
+        -224,
+        192
+      ],
+      "id": "94bb066f-90d3-4c1f-bee4-9f2821d4896f",
+      "name": "Google Gemini Chat Model",
+      "credentials": {
+        "googlePalmApi": {
+          "id": "EgLZeLqDE3cl1Cgv",
+          "name": "Google Gemini(PaLM) Api account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "07315cca-bc99-4d27-b78e-cce463844dd7",
+              "name": "Sender",
+              "value": "={{ $('Gmail Trigger').item.json.from }}",
+              "type": "string"
+            },
+            {
+              "id": "09b2ebef-5a0e-4d4f-9a35-0f10407c8c10",
+              "name": "Subject",
+              "value": "={{ $('Gmail Trigger').item.json.subject }}",
+              "type": "string"
+            },
+            {
+              "id": "da28c5fb-f473-4551-95b8-ac271d15b542",
+              "name": "Body",
+              "value": "={{ $('Gmail Trigger').item.json.snippet }}",
+              "type": "string"
+            },
+            {
+              "id": "07a32cfd-42b8-4554-8804-50d03accbc80",
+              "name": "Intent",
+              "value": "={{ $json.output.trim().toLowerCase() }}",
+              "type": "string"
+            },
+            {
+              "id": "4a8e8bda-8dc1-4589-b880-254a55ca8843",
+              "name": "emaiId",
+              "value": "={{ $('Gmail Trigger').item.json.id }}",
+              "type": "string"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        112,
+        0
+      ],
+      "id": "7f56f2a5-408a-4d5c-b72a-8d5afbd9f5c7",
+      "name": "Extract Intent"
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 3
+          },
+          "conditions": [
+            {
+              "id": "da9f20c8-cb4b-4544-abc4-20486793cd0a",
+              "leftValue": "={{$json.Intent}}",
+              "rightValue": "urgent",
+              "operator": {
+                "type": "string",
+                "operation": "equals",
+                "name": "filter.operator.equals"
+              }
+            },
+            {
+              "id": "57036fab-48f7-4532-9d70-4e60a394a6b2",
+              "leftValue": "={{$json.Intent}}",
+              "rightValue": "complaint",
+              "operator": {
+                "type": "string",
+                "operation": "equals",
+                "name": "filter.operator.equals"
+              }
+            }
+          ],
+          "combinator": "or"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.3,
+      "position": [
+        576,
+        -16
+      ],
+      "id": "9a2e77de-fe2f-433c-95ec-01085010f5de",
+      "name": "Check Urgent/Complaint"
+    },
+    {
+      "parameters": {
+        "promptType": "define",
+        "text": "=You are a professional email assistant handling an urgent or complaint email.\n\nWrite a specific, empathetic reply that directly addresses this person's exact problem.\nAcknowledge the issue. Promise quick follow-up. Keep it under 80 words.\n\nClassification: {{ $json.Intent }}\nFrom: {{ $json.Sender }}\nSubject: {{ $json.Subject }}\nOriginal email: {{ $json.Body }}",
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.agent",
+      "typeVersion": 3.1,
+      "position": [
+        784,
+        -32
+      ],
+      "id": "6aea317c-4b2d-43ca-928e-48329c154df3",
+      "name": "AI Agent1"
+    },
+    {
+      "parameters": {
+        "promptType": "define",
+        "text": "=You are a professional email assistant.\n\nWrite a friendly, formal reply that directly addresses what this person \nis asking about. Keep it under 60 words. Be warm but concise.\n\nClassification: {{ $json.Intent }}\nFrom: {{ $json.Sender }}\nSubject: {{ $json.Subject }}\nOriginal email: {{ $json.Body }}",
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.agent",
+      "typeVersion": 3.1,
+      "position": [
+        128,
+        240
+      ],
+      "id": "bf0ad7e4-15b5-4ac5-96be-eea4a5d3da93",
+      "name": "AI Agent2"
+    },
+    {
+      "parameters": {
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.lmChatGoogleGemini",
+      "typeVersion": 1,
+      "position": [
+        784,
+        128
+      ],
+      "id": "eebc5f37-96ab-4216-b400-3761b8e52c1c",
+      "name": "Urgent Response",
+      "credentials": {
+        "googlePalmApi": {
+          "id": "EgLZeLqDE3cl1Cgv",
+          "name": "Google Gemini(PaLM) Api account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.lmChatGoogleGemini",
+      "typeVersion": 1,
+      "position": [
+        128,
+        416
+      ],
+      "id": "9daa7c9a-9839-46cd-9c1d-3670a55bb773",
+      "name": "Normal Response",
+      "credentials": {
+        "googlePalmApi": {
+          "id": "EgLZeLqDE3cl1Cgv",
+          "name": "Google Gemini(PaLM) Api account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 3
+          },
+          "conditions": [
+            {
+              "id": "f5a496bb-43e4-4f6b-a24b-8c88884f465a",
+              "leftValue": "={{ $json.Sender }}",
+              "rightValue": "noreply",
+              "operator": {
+                "type": "string",
+                "operation": "notContains"
+              }
+            },
+            {
+              "id": "4a19beeb-c700-4e1a-bece-15b2429d8c12",
+              "leftValue": "={{ $json.Sender }}",
+              "rightValue": "no-reply",
+              "operator": {
+                "type": "string",
+                "operation": "notContains"
+              }
+            },
+            {
+              "id": "2b63233e-ddd6-41cb-aeb0-fbfd2f058441",
+              "leftValue": "={{ $json.Sender }}",
+              "rightValue": "notifications",
+              "operator": {
+                "type": "string",
+                "operation": "notContains"
+              }
+            },
+            {
+              "id": "74019b22-d327-41d7-8041-427522499dc4",
+              "leftValue": "={{ $json.Sender }}",
+              "rightValue": "donotreply",
+              "operator": {
+                "type": "string",
+                "operation": "notContains"
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.3,
+      "position": [
+        352,
+        0
+      ],
+      "id": "03330d64-b989-4564-bf7c-e49b52fa56c9",
+      "name": "Check Sender"
+    },
+    {
+      "parameters": {
+        "operation": "reply",
+        "messageId": "={{ $('Gmail Trigger').item.json.id }}",
+        "emailType": "text",
+        "message": "={{ $json.output }}",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.gmail",
+      "typeVersion": 2.2,
+      "position": [
+        432,
+        240
+      ],
+      "id": "5d998945-18c7-472d-9450-9f629a508d63",
+      "name": "Reply to normal email",
+      "webhookId": "ec590942-e217-44b0-a5a5-ecb64f457ea6",
+      "credentials": {
+        "gmailOAuth2": {
+          "id": "Gg4gBvlRmeo3khsc",
+          "name": "Gmail OAuth2 API"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "operation": "reply",
+        "messageId": "={{ $('Gmail Trigger').item.json.id }}",
+        "emailType": "text",
+        "message": "={{ $json.output }}",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.gmail",
+      "typeVersion": 2.2,
+      "position": [
+        1088,
+        -32
+      ],
+      "id": "50e473b0-d1f4-4162-af14-6ac407547f94",
+      "name": "Reply to a urgent email",
+      "webhookId": "bcac8e97-8eaa-4e94-a0d4-0f30e25b11e7",
+      "credentials": {
+        "gmailOAuth2": {
+          "id": "Gg4gBvlRmeo3khsc",
+          "name": "Gmail OAuth2 API"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "operation": "append",
+        "documentId": {
+          "__rl": true,
+          "value": "10dSjyoZLwlVsecfkwhi_wvfvdvF8bBfeHJjcUti8bHQ",
+          "mode": "list",
+          "cachedResultName": "Email Classification Logg",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/10dSjyoZLwlVsecfkwhi_wvfvdvF8bBfeHJjcUti8bHQ/edit?usp=drivesdk"
+        },
+        "sheetName": {
+          "__rl": true,
+          "value": "gid=0",
+          "mode": "list",
+          "cachedResultName": "Sheet1",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/10dSjyoZLwlVsecfkwhi_wvfvdvF8bBfeHJjcUti8bHQ/edit#gid=0"
+        },
+        "columns": {
+          "mappingMode": "defineBelow",
+          "value": {
+            "Timestamp": "={{ $now }}",
+            "Sender": "={{ $('Extract Intent').item.json.Sender }}",
+            "Subject": "={{ $('Extract Intent').item.json.Subject }}",
+            "Body": "={{ $('Extract Intent').item.json.Body }}",
+            "Intent": "={{ $('Extract Intent').item.json.Intent }}",
+            "Reply Sent": "={{ $json.output }}"
+          },
+          "matchingColumns": [],
+          "schema": [
+            {
+              "id": "Timestamp",
+              "displayName": "Timestamp",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "Sender",
+              "displayName": "Sender",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "Subject",
+              "displayName": "Subject",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "Body",
+              "displayName": "Body",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "Intent",
+              "displayName": "Intent",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "Reply Sent",
+              "displayName": "Reply Sent",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            }
+          ],
+          "attemptToConvertTypes": false,
+          "convertFieldsToString": false
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4.7,
+      "position": [
+        1072,
+        336
+      ],
+      "id": "1d78c379-bff3-4f0f-bf14-cdfeed440b9f",
+      "name": "Log to Sheets",
+      "credentials": {
+        "googleSheetsOAuth2Api": {
+          "id": "rY1LJBe6WPhDqidN",
+          "name": "Google Sheets OAuth2 API"
+        }
+      }
+    }
+  ],
+  "pinData": {},
+  "connections": {
+    "Gmail Trigger": {
+      "main": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Google Gemini Chat Model": {
+      "ai_languageModel": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "ai_languageModel",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "AI Agent": {
+      "main": [
+        [
+          {
+            "node": "Extract Intent",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Extract Intent": {
+      "main": [
+        [
+          {
+            "node": "Check Sender",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Check Urgent/Complaint": {
+      "main": [
+        [
+          {
+            "node": "AI Agent1",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "AI Agent2",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Urgent Response": {
+      "ai_languageModel": [
+        [
+          {
+            "node": "AI Agent1",
+            "type": "ai_languageModel",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Normal Response": {
+      "ai_languageModel": [
+        [
+          {
+            "node": "AI Agent2",
+            "type": "ai_languageModel",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "AI Agent1": {
+      "main": [
+        [
+          {
+            "node": "Reply to a urgent email",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "AI Agent2": {
+      "main": [
+        [
+          {
+            "node": "Reply to normal email",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Check Sender": {
+      "main": [
+        [
+          {
+            "node": "Check Urgent/Complaint",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Reply to normal email": {
+      "main": [
+        [
+          {
+            "node": "Log to Sheets",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Reply to a urgent email": {
+      "main": [
+        [
+          {
+            "node": "Log to Sheets",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": false,
+  "settings": {
+    "executionOrder": "v1",
+    "binaryMode": "separate"
+  },
+  "versionId": "5cb30476-397f-4cc9-96e4-ee911ca44954",
+  "meta": {
+    "templateCredsSetupCompleted": true,
+    "instanceId": "4d7e54773805613b5a034b4afc31ea2b7566c8fe4dc45e706d5f12265e2f2fd3"
+  },
+  "id": "m22EMpOSce3wo9CR",
+  "tags": []
+}
