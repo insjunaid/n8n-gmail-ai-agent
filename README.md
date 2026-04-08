@@ -19,7 +19,7 @@
 
 ## Workflow Architecture
 
-![n8n Workflow Screenshot](workflow.png)
+![n8n Workflow Screenshot](<img width="1277" height="494" alt="Image" src="https://github.com/user-attachments/assets/95ac5894-22c0-422e-ba0d-cbeef5a4a731" />)
 
 ---
 
@@ -108,10 +108,10 @@ You are a professional email assistant handling an urgent or complaint email.
 Write a specific, empathetic reply that directly addresses this person's exact problem.
 Acknowledge the issue. Promise quick follow-up. Keep it under 80 words.
 
-Classification: {{ $json.intent }}
-From: {{ $json.sender }}
-Subject: {{ $json.subject }}
-Original email: {{ $json.body }}
+Classification: {{ $json.Intent }}
+From: {{ $json.Sender }}
+Subject: {{ $json.Subject }}
+Original email: {{ $json.Body }}
 ```
 
 ### 6b. AI Agent2 — Normal Reply
@@ -123,10 +123,10 @@ You are a professional email assistant.
 Write a friendly, formal reply that directly addresses what this person is asking about.
 Keep it under 60 words. Be warm but concise.
 
-Classification: {{ $json.intent }}
-From: {{ $json.sender }}
-Subject: {{ $json.subject }}
-Original email: {{ $json.body }}
+Classification: {{ $json.Intent }}
+From: {{ $json.Sender }}
+Subject: {{ $json.Subject }}
+Original email: {{ $json.Body }}
 ```
 
 ### 7. Gmail Reply
@@ -159,11 +159,10 @@ Appends one row per email processed with these columns:
 3. Click **Get API key** → **Create API key**
 4. Copy and save the key
 
-### Step 2 — Import the workflow into n8n
+### Step 2 — Use N8N
 1. Open your n8n dashboard
 2. Click **New Workflow**
-3. Click the three-dot menu → **Import from file**
-4. Upload the `workflow.json` file from this repo
+3. Start Connecting Nodes
 
 ### Step 3 — Connect your accounts
 - **Gmail** — connect via OAuth when prompted inside the Gmail nodes
@@ -233,7 +232,7 @@ Alternatively switch to `gemini-2.0-flash-lite` in the Gemini Chat Model node fo
 
 ## Author
 
-- Built by Junaid Shariff
+- Built by **Junaid Shariff**
 - Connect with me on [LinkedIn](https://www.linkedin.com/in/junaid-shariff10/)
 
 ---
