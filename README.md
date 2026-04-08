@@ -233,7 +233,7 @@ Alternatively switch to `gemini-2.0-flash-lite` in the Gemini Chat Model node fo
 
 ## Author
 
-- Built by [Junaid Shariff]
+- Built by Junaid Shariff
 - Connect with me on [LinkedIn](https://www.linkedin.com/in/junaid-shariff10/)
 
 ---
